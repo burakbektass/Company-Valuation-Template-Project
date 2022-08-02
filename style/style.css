@@ -1,0 +1,57 @@
+/* CSS Snippet from W3schools: https://www.w3schools.com/howto/howto_css_contact_form.asp */
+/* Style inputs with type="text", select elements and textareas */
+
+  
+  /* Hide Streamlit Branding */
+  /* #MainMenu {visibility: hidden;} */
+  footer {visibility: hidden;}
+
+  div.css-zt5igj.e16nr0p32{
+    color: #5B84B1FF;   /* Welcome to company valuation yazısı - Anasayfa */
+  }
+
+  div:nth-child(1){
+    color: #FC766AFF;
+  } 
+
+  div.streamlit-expanderHeader{
+    color: #5B84B1FF;    /* Expander başlıkları */
+  }
+
+  div.streamlit-expanderContent{
+    color: #FC766AFF;   /* Expander içindeki yazılar */    
+  }
+
+  div.element-container.css-1p1nwyz.e1tzin5v3{
+    color: #5B84B1FF;   /* Welcome to company valuation yazısı - sidebar */
+  }
+
+  /* div.block-container.css-1gx893w.egzxvld2{
+    color: #FF5733;
+  }
+  div.css-1adrfps.e1fqkh3o2{
+    color: #FF5733;
+  }
+  section.css-1lcbmhc.e1fqkh3o3{
+    color: #FF5733;
+  }
+  */
+ 
+  div h2{
+    color: #5B84B1FF;
+  }
+
+  /* div.streamlit-expanderContent p{
+    color: #5B84B1FF;
+  } */
+  #root > div:nth-child(1) > div > div > div > div > section.main.css-1v3fvcr.egzxvld3 > div > div:nth-child(1) > div > div:nth-child(6) > ul > li > div.streamlit-expanderContent.st-ae.st-af.st-ag.st-ah.st-ai.st-aj.st-cc.st-bp.st-cj.st-eh.st-e7.st-e8.st-as.st-at.st-cq.st-ci.st-e9.st-cg.st-ed.st-bb.st-am.st-ei.st-ef.st-b1.st-eg.st-b3.st-ce.st-cf.st-cd > div:nth-child(1) > div > div:nth-child(3) > div > div > p {
+    color: #5B84B1FF;  /* DCF Decision */
+  }
+
+  #root > div:nth-child(1) > div > div > div > div > section.main.css-1v3fvcr.egzxvld3 > div > div:nth-child(1) > div > div:nth-child(7) > ul > li > div.streamlit-expanderContent.st-ae.st-af.st-ag.st-ah.st-ai.st-aj.st-cc.st-bp.st-cj.st-eh.st-e7.st-e8.st-as.st-at.st-cq.st-ci.st-e9.st-cg.st-ed.st-bb.st-am.st-ei.st-ef.st-b1.st-eg.st-b3.st-ce.st-cf.st-cd > div:nth-child(1) > div > div:nth-child(8) > div > div > p {
+    color: #5B84B1FF;  /* Enterprise Decision */
+  }
+
+  #root > div:nth-child(1) > div > div > div > div > section.main.css-1v3fvcr.egzxvld3 > div > div:nth-child(1) > div > div:nth-child(8) > ul > li > div.streamlit-expanderContent.st-ae.st-af.st-ag.st-ah.st-ai.st-aj.st-cc.st-bp.st-cj.st-eh.st-e7.st-e8.st-as.st-at.st-cq.st-ci.st-e9.st-cg.st-ed.st-bb.st-am.st-ei.st-ef.st-b1.st-eg.st-b3.st-ce.st-cf.st-cd > div:nth-child(1) > div > div:nth-child(4) > div > div > p {
+    color: #5B84B1FF;  /* Weıghted Decision */
+  }
