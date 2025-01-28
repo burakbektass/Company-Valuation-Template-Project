@@ -44,14 +44,9 @@ Documentation/
 .env
 .env.local
 
-# Compiled files
-*.pyc
-*.pyo
-*.pyd
-
 # Excel files
-*.xlsx
-*.xls
+# *.xlsx
+# *.xls
 
 # PHP files
 *.php
@@ -59,4 +54,9 @@ Documentation/
 # Keep
 !requirements.txt
 !main.py
-!*/ 
+!*.xlsx
+!*/
+!config.py
+!excel_utils.py
+!financial_calculations.py
+!dcf_valuation.py 
