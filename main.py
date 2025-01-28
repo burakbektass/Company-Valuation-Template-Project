@@ -482,30 +482,24 @@ def dcf(option,risk_free_rate,market_rate_of_return):
             
             st.write("Fair value of company calculated with DCF: ",dcf.fair_value_of_company)
             st.write("Current stock price of company: ",current_price)
-            st.write("UNDER PRICED!!")
-
-    
-    
-     
-    # with st.expander("SEE WEIGHTED VALUE OF DCF AND RESIDUAL INCOME IS HERE"):  
-    #     st.write("Weighted price is: ", weighted_price) 
-                                   #33333333333333333333333333333333333333333333333333333333333333333333333333333333333    BURASI DEĞİŞMELİ
-    
-    return dcf.fair_value_of_company,dcf.price_per_share   # weighted_price için eklendi
+            st.write("UNDER PRICED!!")    
+    return dcf.fair_value_of_company,dcf.price_per_share 
 
 
 
-#Enterprise METHOD
+#Enterprise Value Method
 def enterprise_formul(company): 
     try:
         book = load_workbook(excel_names[company])
     except FileNotFoundError:
-        st.error(f"Excel dosyası bulunamadı: {excel_names[company]}")
-        st.info("Lütfen Excel dosyasının doğru konumda olduğundan emin olun.")
+        st.error(f"Excel file not found: {excel_names[company]}")
+        st.info("Please make sure the Excel file is in the correct location.")
         st.stop()
+        
     financial_sheets = book[sheet_names[company]]
-    #2021
-    current_price= si.get_live_price(tickers[company])
+    
+    # Calculate enterprise value metrics for 2021
+    current_price = si.get_live_price(tickers[company])
     enterprise_formul.marketcap = current_price * no_of_common_stock[company]
     enterprise_formul.totaldebt = financial_sheets['L57'].value * 1000
     enterprise_formul.cashandcasheq = (financial_sheets['L13'].value) * 1000
@@ -513,14 +507,15 @@ def enterprise_formul(company):
          abs(financial_sheets['X30'].value) +
          abs(financial_sheets['X27'].value) +
          financial_sheets['X55'].value) * 1000
-    enterprise_formul.enterprisevalue = enterprise_formul.marketcap +  enterprise_formul.totaldebt -  enterprise_formul.cashandcasheq
+    enterprise_formul.enterprisevalue = enterprise_formul.marketcap + enterprise_formul.totaldebt - enterprise_formul.cashandcasheq
     enterprise_formul.valueofcompany = abs(enterprise_formul.enterprisevalue / enterprise_formul.EBITDA)
     
     return enterprise_formul.valueofcompany
-# Sidebar
+
+# Sidebar configuration
 st.sidebar.header('Welcome to Company Valuation Template')
 
-# Companies and constants
+# Companies selection
 option = st.sidebar.selectbox('Companies', ('Google','Apple','Microsoft',
                         'Coca-Cola','PepsiCo','Monster',
                         'Walmart','Dollar General Corporation',
@@ -528,59 +523,75 @@ option = st.sidebar.selectbox('Companies', ('Google','Apple','Microsoft',
                         'Ak Enerji','Migros','Carrefour SA','BIM',
                         'Arcelik','Vestel','Bosch'))
 ticker = tickers[option]
-calculate = st.sidebar.button('Calculate',key=1,)
+calculate = st.sidebar.button('Calculate', key=1)
 st.sidebar.text("")
 st.sidebar.write('Or you can upload your own financial sheets.')
 st.sidebar.text("")
 
-#***********************************BURASI UPLOAD KISMI*************************
+# File upload section
 upload_file = st.sidebar.file_uploader('Choose a file to upload', type = 'xlsx')
 
-if upload_file :
+if upload_file:
     st.sidebar.markdown('---')
     book = load_workbook(upload_file)
     financial_sheets = book[book.sheetnames[0]]
     if book.sheetnames[0] in tr_companies:
+        # Set Turkish market parameters
         risk_free_rate = 0.17 
         market_rate_of_return = 0.583 
         constant = 0.23
+        
+        # Display company information
         st.sidebar.write("Turkish company ")
         st.sidebar.write("Risk free rate for Turkey: ", risk_free_rate)
         st.sidebar.write("Market rate of return for Turkey: ", market_rate_of_return)
         st.sidebar.write("Beta: ", betas[book.sheetnames[0]])
         st.sidebar.write("Number of common stocks: ", no_of_common_stock[book.sheetnames[0]])
-        st.write("Financial sheet of ",book.sheetnames[0]," Company is used.")
-        dcf(book.sheetnames[0],risk_free_rate,market_rate_of_return)
+        st.write("Financial sheet of ", book.sheetnames[0], " Company is used.")
+        
+        # Calculate DCF valuation
+        dcf(book.sheetnames[0], risk_free_rate, market_rate_of_return)
+        
+        # Calculate sector metrics
         sector_list = sectors[book.sheetnames[0]]
         total_sector_value = 0
         no_of_sector_company = 0
-        total_stock_price_of_sector = 0  #yeni
+        total_stock_price_of_sector = 0  
         total_evm_price = 0
 
         with st.expander("SEE ENTERPRISE OUTPUT HERE"):
+            # Calculate enterprise values for sector companies
             for company in sector_list:
                 enterprise_formul(company)
                 total_sector_value += enterprise_formul.valueofcompany
                 no_of_sector_company += 1  
-                current_price = si.get_live_price(tickers[company]) #yeni
-                total_stock_price_of_sector += current_price  #yeni
-                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company #yeni 
+                current_price = si.get_live_price(tickers[company]) 
+                total_stock_price_of_sector += current_price  
+                
+                # Calculate sector averages
+                average_stock_price_of_sector = total_stock_price_of_sector / no_of_sector_company  
                 sector_average = total_sector_value / no_of_sector_company
-                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) #son
-                total_evm_price += evm_stock_price #son
-                average_evm_value = total_evm_price / no_of_sector_company #son
-                st.write("Enterprise Ratio of ", company ,": ",enterprise_formul.valueofcompany)
-            enterprise_formul(book.sheetnames[0]) # yeni enterprise value değeri için
-            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) # yeni enterprise value değeri için
-            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) # yeni enterprise value değeri için
-            st.write("Average stock price of ", sectors_string[option], " is ",average_stock_price_of_sector)  #yeni
-            st.write("Average Enterprise Ratio for ", sectors_string[option], " is ",sector_average)
+                evm_stock_price = ((average_stock_price_of_sector/sector_average) * enterprise_formul.valueofcompany) 
+                total_evm_price += evm_stock_price 
+                average_evm_value = total_evm_price / no_of_sector_company 
+                
+                st.write("Enterprise Ratio of ", company, ": ", enterprise_formul.valueofcompany)
+                
+            # Calculate enterprise value for uploaded company
+            enterprise_formul(book.sheetnames[0]) 
+            evm_stock_price = ((average_stock_price_of_sector/sector_average) * enterprise_formul.valueofcompany)
+            
+            # Display results
+            st.write("Enterprise Value for ", book.sheetnames[0], " is: ", evm_stock_price)
+            st.write("Average stock price of ", sectors_string[option], " is ", average_stock_price_of_sector)
+            st.write("Average Enterprise Ratio for ", sectors_string[option], " is ", sector_average)
 
-            if(evm_stock_price > average_evm_value):         #enterprise parametresi option değil book.sheetnames[0] oldu
-                st.write("Value of ",book.sheetnames[0], " is greater than average.")   #option değil book.sheetnames[0] oldu
+            # Determine if stock is overpriced or underpriced
+            if evm_stock_price > average_evm_value:
+                st.write("Value of ", book.sheetnames[0], " is greater than average.")
                 st.write("Overpriced")
             else:
-                st.write("Value of ",book.sheetnames[0], " is lower than average.")  # option değil book.sheetnames[0] oldu
+                st.write("Value of ", book.sheetnames[0], " is lower than average.")
                 st.write("Underpriced")
         with st.expander("SEE WEIGHTED VALUE OF ALL METHODS OUTPUT HERE"):
             weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.1 * dcf.price_per_share + 0.5 * evm_stock_price ## yeni weighted için
@@ -603,10 +614,10 @@ if upload_file :
         st.sidebar.write("Number of common stocks: ", no_of_common_stock[book.sheetnames[0]])
         st.write("Financial sheet of ",book.sheetnames[0]," Company is used.")
         dcf(book.sheetnames[0],risk_free_rate,market_rate_of_return)
-        sector_list = sectors[book.sheetnames[0]] #option değil book.sheetnames[0] oldu
+        sector_list = sectors[book.sheetnames[0]] 
         total_sector_value = 0
         no_of_sector_company = 0
-        total_stock_price_of_sector = 0  #yeni
+        total_stock_price_of_sector = 0  
         total_evm_price = 0
 
         with st.expander("SEE ENTERPRISE OUTPUT HERE"):
@@ -614,29 +625,29 @@ if upload_file :
                 enterprise_formul(company)
                 total_sector_value += enterprise_formul.valueofcompany
                 no_of_sector_company += 1
-                current_price = si.get_live_price(tickers[company]) #yeni
-                total_stock_price_of_sector += current_price    #yeni
-                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company #yeni
+                current_price = si.get_live_price(tickers[company]) 
+                total_stock_price_of_sector += current_price    
+                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company 
                 sector_average = total_sector_value / no_of_sector_company
-                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) #son
-                total_evm_price += evm_stock_price #son
-                average_evm_value = total_evm_price / no_of_sector_company #son
+                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) 
+                total_evm_price += evm_stock_price 
+                average_evm_value = total_evm_price / no_of_sector_company 
                 st.write("Enterprise Ratio of ", company ,": ",enterprise_formul.valueofcompany)
-            enterprise_formul(book.sheetnames[0]) # yeni enterprise value değeri için
-            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) # yeni enterprise value değeri için
-            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) # yeni enterprise value değeri için
-            st.write("Average stock price of ", sectors_string[book.sheetnames[0]], " is ",average_stock_price_of_sector)  #yeni
-            st.write("Average Enterprise Ratio for ", sectors_string[book.sheetnames[0]], " is ",sector_average) #sectors_string[book.sheetnames[0]] oldu
+            enterprise_formul(book.sheetnames[0]) 
+            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) 
+            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) 
+            st.write("Average stock price of ", sectors_string[book.sheetnames[0]], " is ",average_stock_price_of_sector)  
+            st.write("Average Enterprise Ratio for ", sectors_string[book.sheetnames[0]], " is ",sector_average) 
 
-            if(evm_stock_price > average_evm_value):     #enterprise parametresi option değil book.sheetnames[0] oldu
-                st.write("Value of ",book.sheetnames[0], " is greater than average.")   #option değil book.sheetnames[0] oldu
+            if(evm_stock_price > average_evm_value):     
+                st.write("Value of ",book.sheetnames[0], " is greater than average.")   
                 st.write("Overpriced")
             else:
-                st.write("Value of ",book.sheetnames[0], " is lower than average.")    #option değil book.sheetnames[0] oldu
+                st.write("Value of ",book.sheetnames[0], " is lower than average.")    
                 st.write("Underpriced")
         with st.expander("SEE WEIGHTED VALUE OF ALL METHODS OUTPUT HERE"):
-            weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.5 * dcf.price_per_share + 0.1 * evm_stock_price ## yeni weighted için
-            st.write("Weighted Value", weighted_value) ## yeni weighted için
+            weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.5 * dcf.price_per_share + 0.1 * evm_stock_price 
+            st.write("Weighted Value", weighted_value) 
             st.write("Current stock price ",si.get_live_price(tickers[book.sheetnames[0]]))
             if(weighted_value > si.get_live_price(tickers[book.sheetnames[0]])):
                 st.write("Weighted value of ",book.sheetnames[0], " is greater than current stock price.")
@@ -646,13 +657,13 @@ if upload_file :
                 st.write("Decision: Overpriced")
 
 
-#***********************************BURASI UPLOAD KISMI*************************
+#*********************************** UPLOAD *************************
     
 if calculate:
     if option in tr_companies:
-        risk_free_rate = 0.17 # us 0.029
-        market_rate_of_return = 0.583 # us 0.10
-        constant = 0.23 # us 0.21
+        risk_free_rate = 0.17 
+        market_rate_of_return = 0.583 
+        constant = 0.23 
         st.sidebar.write("Turkish company ")
         st.sidebar.write("Risk free rate for Turkey: ", risk_free_rate)
         st.sidebar.write("Market rate of return for Turkey: ", market_rate_of_return)
@@ -667,7 +678,7 @@ if calculate:
         sector_list = sectors[option]
         total_sector_value = 0
         no_of_sector_company = 0
-        total_stock_price_of_sector = 0  #yeni
+        total_stock_price_of_sector = 0  
         total_evm_price = 0
 
         with st.expander("SEE ENTERPRISE OUTPUT HERE"):
@@ -676,19 +687,19 @@ if calculate:
                 enterprise_formul(company)
                 total_sector_value += enterprise_formul.valueofcompany
                 no_of_sector_company += 1  
-                current_price = si.get_live_price(tickers[company]) #yeni
-                total_stock_price_of_sector += current_price           #yeni
+                current_price = si.get_live_price(tickers[company]) 
+                total_stock_price_of_sector += current_price           
                 sector_average = total_sector_value / no_of_sector_company
-                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company #yeni 
+                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company 
                 sector_average = total_sector_value / no_of_sector_company
-                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) #son
-                total_evm_price += evm_stock_price #son
-                average_evm_value = total_evm_price / no_of_sector_company #son
+                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) 
+                total_evm_price += evm_stock_price 
+                average_evm_value = total_evm_price / no_of_sector_company 
                 st.write("Enterprise Ratio of ", company ,": ",enterprise_formul.valueofcompany)
-            enterprise_formul(option) # yeni enterprise value değeri için
-            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) # yeni enterprise value değeri için
-            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) # yeni enterprise value değeri için
-            st.write("Average stock price of ", sectors_string[option], " is ",average_stock_price_of_sector) #yeni
+            enterprise_formul(option) 
+            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) 
+            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) 
+            st.write("Average stock price of ", sectors_string[option], " is ",average_stock_price_of_sector) 
             st.write("Average Enterprise Ratio for ", sectors_string[option], " is ",sector_average)
             if(evm_stock_price > average_evm_value):
                 st.write("value of ",option, " is greater than average.")
@@ -697,8 +708,8 @@ if calculate:
                 st.write("value of ",option, " is lower than average.")
                 st.write("Decision: Underpriced")
         with st.expander("SEE WEIGHTED VALUE OF ALL METHODS OUTPUT HERE"):
-            weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.1 * dcf.price_per_share + 0.5 * evm_stock_price ## yeni weighted için
-            st.write("Weighted Value", weighted_value) ## yeni weighted için
+            weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.1 * dcf.price_per_share + 0.5 * evm_stock_price 
+            st.write("Weighted Value", weighted_value) 
             st.write("Current stock price ",si.get_live_price(tickers[option]))
             if(weighted_value > si.get_live_price(tickers[option])):
                 st.write("Weighted value of ",option, " is greater than current stock price.")
@@ -725,7 +736,7 @@ if calculate:
         sector_list = sectors[option]
         total_sector_value = 0
         no_of_sector_company = 0
-        total_stock_price_of_sector = 0  #yeni
+        total_stock_price_of_sector = 0  
         total_evm_price = 0
 
 
@@ -734,18 +745,18 @@ if calculate:
                 enterprise_formul(company)
                 total_sector_value += enterprise_formul.valueofcompany
                 no_of_sector_company += 1
-                current_price = si.get_live_price(tickers[company]) #yeni
-                total_stock_price_of_sector += current_price           #yeni
-                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company #yeni
+                current_price = si.get_live_price(tickers[company]) 
+                total_stock_price_of_sector += current_price           
+                average_stock_price_of_sector = total_stock_price_of_sector /no_of_sector_company 
                 sector_average = total_sector_value / no_of_sector_company
-                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) #son
-                total_evm_price += evm_stock_price #son
-                average_evm_value = total_evm_price / no_of_sector_company #son
+                evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) 
+                total_evm_price += evm_stock_price 
+                average_evm_value = total_evm_price / no_of_sector_company 
                 st.write("Enterprise Ratio of ", company ,": ",enterprise_formul.valueofcompany)
-            enterprise_formul(option) # yeni enterprise value değeri için
-            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) # yeni enterprise value değeri için
-            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) # yeni enterprise value değeri için
-            st.write("Average stock price of ", sectors_string[option], " is ",average_stock_price_of_sector)  #yeni
+            enterprise_formul(option) 
+            evm_stock_price = ((average_stock_price_of_sector/sector_average)*enterprise_formul.valueofcompany) 
+            st.write("Enterprise Value for ",book.sheetnames[0] ," is: ",evm_stock_price) 
+            st.write("Average stock price of ", sectors_string[option], " is ",average_stock_price_of_sector) 
             st.write("Average Enterprise Ratio for ", sectors_string[option], " is ",sector_average)
             if(evm_stock_price > average_evm_value):
                 st.write("value of ",option, " is greater than average.")
@@ -754,8 +765,8 @@ if calculate:
                 st.write("value of ",option, " is lower than average.")
                 st.write("Decision: Underpriced")
         with st.expander("SEE WEIGHTED VALUE OF ALL METHODS OUTPUT HERE"):
-            weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.5 * dcf.price_per_share + 0.1 * evm_stock_price ## yeni weighted için
-            st.write("Weighted Value", weighted_value) ## yeni weighted için
+            weighted_value = 0.4 * (dcf.fair_value_of_company) + 0.5 * dcf.price_per_share + 0.1 * evm_stock_price 
+            st.write("Weighted Value", weighted_value) 
             st.write("Current stock price ",si.get_live_price(tickers[option]))
             if(weighted_value > si.get_live_price(tickers[option])):
                 st.write("Weighted value of ",option, " is greater than current stock price.")
@@ -764,7 +775,7 @@ if calculate:
                 st.write("Weighted value of ",option, " is lower than current stock price.")
                 st.write("Decision: Overerpriced")
             
-logout_url = 'http://localhost/Capstone/index.php'
+#logout_url = 'http://localhost/Capstone/index.php'
            
 #if st.sidebar.button("Log out") :
 #    webbrowser.open_new_tab(logout_url)
